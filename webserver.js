@@ -13,7 +13,7 @@ const server = http.createServer(function(req, res) {
         res.end()
     })
 
-    res.write('Hello Node')
+    res.write('Hello World.')
     res.end()
 })
 
