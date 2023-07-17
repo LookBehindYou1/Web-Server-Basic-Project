@@ -38,7 +38,7 @@ function App() {
       if (yRef.current >= 600 - 30) setYDirection(-1);
       setX(prevX => prevX + xDirectionRef.current * stepSize + gaussianRandom() * stepSize);
       setY(prevY => prevY + yDirectionRef.current * stepSize + gaussianRandom() * stepSize);
-    }, 10);
+    }, 100);
     return () => clearInterval(id);
   }, [stepSize]);
 
@@ -46,6 +46,7 @@ function App() {
   const determineScore = (container) => {
     if (container === 0) {
       setScore(s => s - 1);
+      setStepSize(s => s - 1);
     }
     if (container === 1) {
       setScore(s => s + 11);

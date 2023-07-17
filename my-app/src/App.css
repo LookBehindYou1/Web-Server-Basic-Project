@@ -1,5 +1,5 @@
 body {
-  background-color: #033c5b; /* replace with your desired color */
+  background-color: #005c8e; /* replace with your desired color */
 }
 
 .Game-Container {
@@ -10,6 +10,15 @@ body {
   width: 600px;
   height: 600px;
   background-image: url("BG.jpeg");
+  cursor: url("Trash.png"), auto;
+}
+
+.game-score {
+  margin: auto;
+  width: 50%;
+  border: 3px solid green;
+  padding: 10px;
+  color: white;
 }
 
 .App {
