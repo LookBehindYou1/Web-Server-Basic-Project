@@ -10,7 +10,7 @@ body {
   width: 600px;
   height: 600px;
   background-image: url("BG.jpeg");
-  cursor: url("Trash.png"), auto;
+  cursor: url("Can.png"), auto;
 }
 
 .game-score {

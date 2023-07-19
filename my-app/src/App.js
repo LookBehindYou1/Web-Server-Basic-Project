@@ -38,19 +38,18 @@ function App() {
       if (yRef.current >= 600 - 30) setYDirection(-1);
       setX(prevX => prevX + xDirectionRef.current * stepSize + gaussianRandom() * stepSize);
       setY(prevY => prevY + yDirectionRef.current * stepSize + gaussianRandom() * stepSize);
-    }, 100);
+    }, 50);
     return () => clearInterval(id);
   }, [stepSize]);
 
   // Determines the score and step size.
   const determineScore = (container) => {
     if (container === 0) {
-      setScore(s => s - 1);
-      setStepSize(s => s - 1);
-    }
-    if (container === 1) {
-      setScore(s => s + 11);
-      setStepSize(s => s + 1);
+      setScore(s => (s - 1 <= -1 ? 0 : s - 1));
+      setStepSize(s => (s - 1 <= 0 ? 0 : s - 1));
+    } else if (container === 1) {
+      setScore(s => s + 10);
+      setStepSize(s => s + 5);
     }
   };
 
@@ -59,8 +58,8 @@ function App() {
     <div className="Game-Container" onClick={() => determineScore(0)}>
       <div className="game-score">{score}</div>
       <img
-        alt="image"
-        src="Image.png"
+        alt= "Trash"
+        src="Trash.png"
         style={{
           position: 'absolute',
           left: x,
