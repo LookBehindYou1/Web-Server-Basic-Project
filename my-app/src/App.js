@@ -9,6 +9,10 @@ function gaussianRandom(mean=0, stdev=1) {
   return z * stdev + mean;
 }
 
+function randomPosition(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 function App() {
   // Variables are created.
   const [x, setX] = React.useState(10);
@@ -17,6 +21,7 @@ function App() {
   const [yDirection, setYDirection] = React.useState(1);
   const [stepSize, setStepSize] = React.useState(1);
   const [score, setScore] = React.useState(0);
+  const [imageSize,setImageSize] = React.useState(50);
   // Refs for x and y are created.
   const xRef = React.useRef(x);
   const yRef = React.useRef(y);
@@ -33,23 +38,34 @@ function App() {
   React.useEffect(() => {
     const id = setInterval(() => {
       if (xRef.current <= 0) setXDirection(1);
-      if (xRef.current >= 600 - 40) setXDirection(-1);
+      if (xRef.current >= 600 - 50) setXDirection(-1);
       if (yRef.current <= 0) setYDirection(1);
-      if (yRef.current >= 600 - 30) setYDirection(-1);
+      if (yRef.current >= 600 - 50) setYDirection(-1);
       setX(prevX => prevX + xDirectionRef.current * stepSize + gaussianRandom() * stepSize);
       setY(prevY => prevY + yDirectionRef.current * stepSize + gaussianRandom() * stepSize);
     }, 50);
     return () => clearInterval(id);
-  }, [stepSize]);
+  }, [stepSize, imageSize]);
 
-  // Determines the score and step size.
+  // What happens when you click.
   const determineScore = (container) => {
     if (container === 0) {
+      // Score decreases by 1 point.
       setScore(s => (s - 1 <= -1 ? 0 : s - 1));
+      // Speed is decreased.
       setStepSize(s => (s - 1 <= 0 ? 0 : s - 1));
+      // Size gets larger.
+      setImageSize(size => (size + 2 >= 0 ? size + 2 : size));
     } else if (container === 1) {
+      // Score increases by 10 points.
       setScore(s => s + 10);
+      // Speed is increased.
       setStepSize(s => s + 5);
+      // Size gets smaller.
+      setImageSize(size => (size - 5 >= 0 ? size - 5 : size));
+      // Image is sent to random position.
+      setX(randomPosition(0, 600 - imageSize));
+      setY(randomPosition(0, 600 - imageSize));
     }
   };
 
@@ -64,8 +80,8 @@ function App() {
           position: 'absolute',
           left: x,
           top: y,
-          width: '50px',
-          height: '50px',
+          width: `${imageSize}px`,
+          height: `${imageSize}px`,
         }}
         onClick={() => determineScore(1)}
       />
