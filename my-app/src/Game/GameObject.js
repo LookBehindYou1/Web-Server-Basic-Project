@@ -19,7 +19,7 @@ class GameObject {
     checkBorders() {
         if (this.x <= 0) this.dx = Math.abs(this.dx);
         if (this.x >= this.xBorder - this.xSize) this.dx = -Math.abs(this.dx);
-        if (this.y <= 0) this.dx = Math.abs(this.dx);
+        if (this.y <= 0) this.dy = Math.abs(this.dy);
         if (this.y >= this.yBorder - this.ySize) this.dy = -Math.abs(this.dy);
     }
 
@@ -47,7 +47,7 @@ class GameObject {
                     left: this.x,
                     top: this.y,
                     width: `${this.xSize}px`,
-                    height: `${this.ySize}`,
+                    height: `${this.ySize}px`,
                 }}
                 {...props}
             />
@@ -76,4 +76,4 @@ class AccelerationObject extends GameObject {
     }
 }
 
-export {GameObject, AcceleerationObject};
+export {GameObject, AccelerationObject};

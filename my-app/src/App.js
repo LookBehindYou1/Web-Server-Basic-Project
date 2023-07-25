@@ -10,18 +10,13 @@ function gaussianRandom(mean=0, stdev=1) {
   return z * stdev + mean;
 }
 
-function randomPosition(min, max) {
-  return Math.random() * (max - min) + min;
-}
-
 function App() {
   // Variables are created.
-  const [trash, setTrash] = React.useState(newAccelerationObject(0, 0, Math.random()*750,
-                            Math.random()*750, 0, 0, '/Trash.png', 50, 50, 800, 800));
+  const [trash, setTrash] = React.useState(new AccelerationObject(0, 0, Math.random()*750,
+                            Math.random()*750, 0, 0, '/Trash.png', 50, 50, 600, 600));
   const [stepSize, setStepSize] = React.useState(1);
   const [score, setScore] = React.useState(0);
   const [time,setTime] = React.useState(0);
-  const [imageSize,setImageSize] = React.useState(50);
   // Key Movement
   const keyDown = (e) => {
     switch (e.keyCode) {
@@ -43,7 +38,7 @@ function App() {
         break
       // Random acceleration
       case 32:
-        trash.ddy += gaussianRandom(0.01)
+        trash.ddy += gaussianRandom(0, 0.01)
         break
       // Nothing happens
       default:
@@ -60,7 +55,7 @@ function App() {
       setTime(oldTime => oldTime + stepSize/1000)
     }, 50);
     return () => clearInterval(id);
-  }, [stepSize, imageSize]);
+  }, [stepSize, trash]);
 
   // IDK
   React.useEffect(() => {
@@ -68,34 +63,12 @@ function App() {
     return () => window.removeEventListener('keydown', keyDown, false);
   }, []);
 
-  // What happens when you click.
-  const determineScore = (container) => {
-    if (container === 0) {
-      // Score decreases by 1 point.
-      setScore(s => (s - 1 <= -1 ? 0 : s - 1));
-      // Speed is decreased.
-      setStepSize(s => (s - 1 <= 0 ? 0 : s - 1));
-      // Size gets larger.
-      setImageSize(size => (size + 2 >= 0 ? size + 2 : size));
-    } else if (container === 1) {
-      // Score increases by 10 points.
-      setScore(s => s + 10);
-      // Speed is increased.
-      setStepSize(s => s + 5);
-      // Size gets smaller.
-      setImageSize(size => (size - 5 >= 0 ? size - 5 : size));
-      // Image is sent to random position.
-      setX(randomPosition(0, 600 - imageSize));
-      setY(randomPosition(0, 600 - imageSize));
-    }
-  };
-
   // Determines what the website looks like.
   return (
-    <div className="Game-Container" onClick={() => determineScore(0)}>
+    <div className="Game-Container" onClick={() => setScore(s => s-1)}>
       <div className="game-score">Time =
       {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}</div>
-        {trash.render({onClick: () => determineScore(1)})}
+        {trash.render({onClick: () => {setScore(s => s+11); setStepSize(s => s+0.1)}})}
     </div>
   );
 }
