@@ -14,6 +14,7 @@ function App() {
   // Variables are created.
   const [trash, setTrash] = React.useState(new AccelerationObject(0, 0, Math.random()*750,
                             Math.random()*750, 0, 0, '/Trash.png', 50, 50, 600, 600));
+  const [firedImage, setFiredImage] = React.useState(null);
   const [stepSize, setStepSize] = React.useState(1);
   const [score, setScore] = React.useState(0);
   const [time,setTime] = React.useState(0);
@@ -23,27 +24,36 @@ function App() {
       // Left
       case 37:
         trash.dx = -1;
-        break
+        break;
       // Up
       case 38:
         trash.dy = -1;
-        break
+        break;
       // Right
       case 39:
         trash.dx = 1;
-        break
+        break;
       // Down
       case 40:
         trash.dy = 1;
-        break
+        break;
       // Random acceleration
       case 32:
         trash.ddy += gaussianRandom(0, 0.01)
-        break
+        break;
+      // Fire ball
+      case 70:
+        if (!firedImage) {
+          const initialVelocity = 10;
+          const firedObject = new GameObject(trash.x, trash.y, initialVelocity, 0,
+                              '/Right Fireball.png', 30, 30, 600, 600);
+          setFiredImage(firedObject);
+        }
+        break;
       // Nothing happens
       default:
         console.log("Other key pressed: ", e.keyCode);
-        break
+        break;
     }
     console.log(trash);
   };
@@ -63,14 +73,36 @@ function App() {
     return () => window.removeEventListener('keydown', keyDown, false);
   }, []);
 
+  // Fired Image Movement
+  // Inside the App component
+  React.useEffect(() => {
+    if (firedImage) {
+      const id = setInterval(() => {
+        firedImage.step(stepSize);
+        setTime((oldTime) => oldTime + stepSize / 1000);
+        // Check if the fired image hits the border
+        if (firedImage.x > 600 || firedImage.x < 0) {
+          // Remove the fired image from the screen and reset its state
+          setFiredImage(null);
+        }
+      }, 50);
+      return () => clearInterval(id);
+    }
+  }, [firedImage, stepSize]);
+
+
   // Determines what the website looks like.
   return (
-    <div className="Game-Container" onClick={() => setScore(s => s-1)}>
-      <div className="game-score">Time =
-      {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}</div>
-        {trash.render({onClick: () => {setScore(s => s+11); setStepSize(s => s+0.1)}})}
+    <div className="Game-Container" onClick={() => setScore((s) => s - 1)}>
+      <div className="game-score">
+        Time = {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}
+      </div>
+      {trash.render({ onClick: () => {setScore((s) => s + 11); setStepSize((s) => s + 0.1)} })}
+      {/* Display the fired image when it exists */}
+      {firedImage && firedImage.render({})}
     </div>
   );
+  
 }
 
 export default App;
