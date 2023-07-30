@@ -14,6 +14,20 @@ class GameObject {
         this.xBorder = xBorder;
         this.yBorder = yBorder;
     }
+
+    // Focuses on randomness of jump.
+    jumpToRandom(){
+        this.x = Math.random()*(this.xBorder - this.xSize)
+        this.y = Math.random()*(this.yBorder - this.xSize)
+    }
+
+    // For collisions of images.
+    hasCollision(other){
+        return (
+            ((other.x -  this.xSize <= this.x) && (this.x = other.x + other.xSize))
+            && ((other.y - this.ySize <= this.y) && (this.y = other.y +other.ySize))
+        )
+    }
     
     // Direction changes after hitting border.
     checkBorders() {
@@ -31,8 +45,8 @@ class GameObject {
 
     // Movement and bounce is put together.
     step(stepSize=0.01) {
-        this.checkBorders()
         this.basicMovement(stepSize)
+        this.checkBorders()
         return this;
     }
 
@@ -40,7 +54,7 @@ class GameObject {
     render(props) {
         return (
             <img
-                alt="Trash"
+                alt={this.image}
                 src={this.image}
                 style={{
                     position: 'absolute',
@@ -76,4 +90,52 @@ class AccelerationObject extends GameObject {
     }
 }
 
-export {GameObject, AccelerationObject};
+// Third
+class PlatformerObject extends AccelerationObject {
+    // Checks borders.
+    checkBorders(){
+        if (this.x < 0) {
+            this.dx = 0;
+            this.x = 0;
+        }
+        if (this.x > this.xBorder - this.xSize) {
+            this.dx = 0;
+            this.x = this.xBorder - this.xSize;
+        }
+        if (this.y < 0) {
+            this.dy = 0;
+            this.y = 0;
+        }
+        if (this.y > this.yBorder - this.ySize) {
+            this.dy = 0;
+            this.y = this.yBorder - this.ySize;
+        }    
+    }
+    // Checks if the object is touching the ground.
+    isTouchingGround() {
+        return this.y == this.yBorder - this.ySize;
+    }
+    // 
+    jump() {
+        if (this.isTouchingGround()) {
+            this.dy = -1;
+        }
+    }
+}
+
+// Fourth
+class TimeToLiveObject extends GameObject {
+    constructor(timeToLive=1000, ...args) {
+        super(...args)
+        this.timeToLive = timeToLive
+        this.steps = 0;
+    }
+    step(...args) {
+        super.step(...args);
+        this.steps += 1;
+        if (this.steps >= this.timeToLive) return null;
+        return this;
+    }
+}
+
+export {GameObject, AccelerationObject, PlatformerObject, TimeToLiveObject};

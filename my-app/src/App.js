@@ -1,105 +1,114 @@
 import React from 'react';
 import './App.css';
-import { GameObject, AccelerationObject } from './Game/GameObject';
-
-function gaussianRandom(mean=0, stdev=1) {
-  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
-  const v = Math.random();
-  const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-  // Transform to the desired mean and standard deviation:
-  return z * stdev + mean;
-}
+import { GameObject, AccelerationObject, PlatformerObject, TimeToLiveObject } from './Game/GameObject';
 
 function App() {
   // Variables are created.
-  const [trash, setTrash] = React.useState(new AccelerationObject(0, 0, Math.random()*750,
-                            Math.random()*750, 0, 0, '/Trash.png', 50, 50, 600, 600));
-  const [firedImage, setFiredImage] = React.useState(null);
-  const [stepSize, setStepSize] = React.useState(1);
+  const [trash, setTrash] = React.useState(new PlatformerObject(0,0.005,
+    Math.random()*750, Math.random()*750, 0, 0, '/Trash.png', 50, 50, 600
+    , 600));
+  const [target, setTarget] = React.useState(new GameObject(Math.random()*750,
+    Math.random()*750, 0, 0, '/Dot.png', 25, 25, 600, 600));
+  const [fireballs, setFireballs] = React.useState([])
+  const [stepSize, setStepSize] = React.useState(4)
   const [score, setScore] = React.useState(0);
   const [time,setTime] = React.useState(0);
+  
   // Key Movement
   const keyDown = (e) => {
     switch (e.keyCode) {
+      // Fireball
+      case 32:
+        setFireballs(oldFireballs => {
+          if (oldFireballs.length > 0 && oldFireballs[oldFireballs.length-1].steps < 50)
+            return oldFireballs
+            let fDx = trash.dx;
+            let fDy = trash.dy;
+            if (fDx === 0 && fDy === 0) {
+              fDy = -1;
+            }
+            const newFireball = new TimeToLiveObject(250, trash.x, trash.y,
+              Math.sign(fDx)*1, Math.sign(fDy)*1, '/Dot.png', 20, 20, 600, 600);
+              return oldFireballs.concat([newFireball])
+        })
+        break;
       // Left
       case 37:
         trash.dx = -1;
-        break;
-      // Up
-      case 38:
-        trash.dy = -1;
         break;
       // Right
       case 39:
         trash.dx = 1;
         break;
-      // Down
-      case 40:
-        trash.dy = 1;
-        break;
-      // Random acceleration
-      case 32:
-        trash.ddy += gaussianRandom(0, 0.01)
-        break;
-      // Fire ball
-      case 70:
-        if (!firedImage) {
-          const initialVelocity = 10;
-          const firedObject = new GameObject(trash.x, trash.y, initialVelocity, 0,
-                              '/Right Fireball.png', 30, 30, 600, 600);
-          setFiredImage(firedObject);
-        }
-        break;
-      // Nothing happens
+      // Jump
+      case 38:
+        trash.jump();
+        break
+      // Everything else
       default:
-        console.log("Other key pressed: ", e.keyCode);
         break;
     }
-    console.log(trash);
   };
 
-  // Every few milliseconds moves position.
+  // Stops movement.
+  const keyUp = (e) => {
+    switch (e.keyCode) {
+      // Left
+      case 37:
+        trash.dx = 0;
+        break;
+      // Right
+        case 39:
+        trash.dx = 0;
+        break;
+      // Everything else.
+      default:
+        break;
+    }
+  }
+
+ // When a fireball is shot.
   React.useEffect(() => {
     const id = setInterval(() => {
       trash.step(stepSize)
+      setFireballs(oldFireballs => oldFireballs.filter((fireball) => {
+        // Check to see if fireball hits target to gain points.
+        if (fireball.hasCollision(target)) {
+          setScore(oldScore => oldScore + 100);
+          target.jumpToRandom()
+          return null;
+        }
+        return fireball.step(stepSize);
+      }))
       setTime(oldTime => oldTime + stepSize/1000)
-    }, 50);
-    return () => clearInterval(id);
-  }, [stepSize, trash]);
+    }, 10);
 
-  // IDK
+    return () => clearInterval(id);
+  }, [stepSize, time]);
+
+  // Checks over the keyDown and keyUp.
   React.useEffect(() => {
     window.addEventListener('keydown', keyDown, false);
-    return () => window.removeEventListener('keydown', keyDown, false);
-  }, []);
-
-  // Fired Image Movement
-  // Inside the App component
-  React.useEffect(() => {
-    if (firedImage) {
-      const id = setInterval(() => {
-        firedImage.step(stepSize);
-        setTime((oldTime) => oldTime + stepSize / 1000);
-        // Check if the fired image hits the border
-        if (firedImage.x > 600 || firedImage.x < 0) {
-          // Remove the fired image from the screen and reset its state
-          setFiredImage(null);
-        }
-      }, 50);
-      return () => clearInterval(id);
+    window.addEventListener('keyup', keyUp, false);
+    return () => {
+      console.log("ayo")
+      window.addEventListener('keydown', keyDown, false);
+      window.addEventListener('keyup', keyUp, false);
+      return () => {
+        window.removeEventListener('keyDown', keyDown, false);
+        window.removeEventListener('keyup', keyUp, false);
+      }
     }
-  }, [firedImage, stepSize]);
-
+  }, []);
 
   // Determines what the website looks like.
   return (
-    <div className="Game-Container" onClick={() => setScore((s) => s - 1)}>
-      <div className="game-score">
-        Time = {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}
-      </div>
-      {trash.render({ onClick: () => {setScore((s) => s + 11); setStepSize((s) => s + 0.1)} })}
-      {/* Display the fired image when it exists */}
-      {firedImage && firedImage.render({})}
+    <div className="game-container">
+      <div className="game-score">Time =
+      {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}</div>
+      {trash.render()}
+      {fireballs.map(f => f.render())}
+      {target.render()}
     </div>
   );
   
