@@ -18,14 +18,14 @@ class GameObject {
     // Focuses on randomness of jump.
     jumpToRandom(){
         this.x = Math.random()*(this.xBorder - this.xSize)
-        this.y = Math.random()*(this.yBorder - this.xSize)
+        this.y = Math.random()*(this.yBorder - this.ySize)
     }
 
     // For collisions of images.
     hasCollision(other){
         return (
-            ((other.x -  this.xSize <= this.x) && (this.x = other.x + other.xSize))
-            && ((other.y - this.ySize <= this.y) && (this.y = other.y +other.ySize))
+            ((other.x -  this.xSize <= this.x) && (this.x <= other.x + other.xSize))
+            && ((other.y - this.ySize <= this.y) && (this.y <= other.y + other.ySize))
         )
     }
     
@@ -115,7 +115,7 @@ class PlatformerObject extends AccelerationObject {
     isTouchingGround() {
         return this.y == this.yBorder - this.ySize;
     }
-    // 
+    // Falling.
     jump() {
         if (this.isTouchingGround()) {
             this.dy = -1;
