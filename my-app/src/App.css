@@ -1,15 +1,5 @@
 body {
-  background-color: #005c8e;
-}
-
-.game-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background-image: url("BG.jpeg");
+  background-color: rgb(127, 170, 255);
 }
 
 .game-score {

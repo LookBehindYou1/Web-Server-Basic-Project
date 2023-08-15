@@ -1,113 +1,51 @@
-import React from 'react';
 import './App.css';
-import { GameObject, AccelerationObject, PlatformerObject, TimeToLiveObject } from './Game/GameObject';
+import React from 'react';
+
+import GameContainer from './Game/GameContainer';
+import StickminPlatformerGameLevel from './Game/StickminPlatformerGameLevel';
+
+// Areas
+const areas = [
+  [0,1,2].map(i => `/Images/Backgrounds/cafe_0${i}.jpeg`),
+  [0,1,2].map(i => `/Images/Backgrounds/gym_0${i}.jpeg`),
+  [0,1,2].map(i => `/Images/Backgrounds/library_0${i}.jpeg`),
+]
+
+// Levels
+const levels = [
+  new StickminPlatformerGameLevel(0.1, areas[0], areas[0][1]),
+  new StickminPlatformerGameLevel(0.3, areas[1], areas[1][1]),
+  new StickminPlatformerGameLevel(1.0, areas[2], areas[2][1]),
+]
 
 function App() {
   // Variables are created.
-  const [trash, setTrash] = React.useState(new PlatformerObject(0,0.005,
-    Math.random()*750, Math.random()*750, 0, 0, '/Person.png', 50, 50, 600
-    , 600));
-  const [target, setTarget] = React.useState(new GameObject(Math.random()*750,
-    Math.random()*750, 0, 0, '/Can.png', 30, 30, 600, 600));
-  const [fireballs, setFireballs] = React.useState([])
-  const [stepSize, setStepSize] = React.useState(4)
-  const [score, setScore] = React.useState(0);
+  const [stepSize, setStepSize] = React.useState(1)
   const [time,setTime] = React.useState(0);
-  
-  // Key Movement
-  const keyDown = (e) => {
-    switch (e.keyCode) {
-      // Fireball
-      case 32:
-        setFireballs(oldFireballs => {
-          if (oldFireballs.length > 0 && oldFireballs[oldFireballs.length-1].steps < 50)
-            return oldFireballs;
-          let fDx = trash.dx;
-          let fDy = trash.dy;
-          if (fDx === 0 && fDy === 0) {
-            fDy = -1;
-          }
-          const newFireball = new TimeToLiveObject(250, trash.x, trash.y,
-              Math.sign(fDx)*1, Math.sign(fDy)*1, '/Trash.png', 20, 20, 600, 600);
-              return oldFireballs.concat([newFireball]);
-        });
-        break;
-      // Left
-      case 37:
-        trash.dx = -1;
-        break;
-      // Right
-      case 39:
-        trash.dx = 1;
-        break;
-      // Jump
-      case 38:
-        trash.jump();
-        break
-      // Everything else
-      default:
-        break;
-    }
-  };
-
-  // Stops movement.
-  const keyUp = (e) => {
-    switch (e.keyCode) {
-      // Left
-      case 37:
-        trash.dx = 0;
-        break;
-      // Right
-      case 39:
-        trash.dx = 0;
-        break;
-      // Everything else.
-      default:
-        break;
-    }
-  }
+  const [game,setGame] = React.useState(new GameContainer(levels));
 
  // When a fireball is shot.
   React.useEffect(() => {
     const id = setInterval(() => {
-      trash.step(stepSize)
-      setFireballs(oldFireballs => oldFireballs.filter((fireball) => {
-        // Check to see if fireball hits target to gain points.
-        if (fireball.hasCollision(target)) {
-          setScore(oldScore => oldScore + 100);
-          target.jumpToRandom()
-          return null;
-        }
-        return fireball.step(stepSize);
-      }))
+      game.step(stepSize);
       setTime(oldTime => oldTime + stepSize/1000)
     }, 10);
 
-    return () => clearInterval(id);
-  }, [stepSize, time]);
+      return () => {clearInterval(id);};
+    }, [stepSize, time, game]);
 
   // Checks over the keyDown and keyUp.
   React.useEffect(() => {
-    console.log("ayo")
-    window.addEventListener('keydown', keyDown, false);
-    window.addEventListener('keyup', keyUp, false);
+    window.addEventListener('keydown', game.keyDown.bind(game), false);
+    window.addEventListener('keyup', game.keyUp.bind(game), false);
     return () => {
-      window.removeEventListener('keydown', keyDown, false);
-      window.removeEventListener('keyup', keyUp, false);
-      }
-  }, []);
+      window.removeEventListener('keydown', game.keyDown.bind(game), false);
+      window.removeEventListener('keyup', game.keyUp.bind(game), false);
+    }
+  }, [game]);
 
   // Determines what the website looks like.
-  return (
-    <div className="game-container">
-      <div className="game-score">Time =
-      {time.toFixed(4)}, Score = {score}, Gravity = {trash.ddy.toFixed(8)}</div>
-      {trash.render()}
-      {fireballs.map(f => f.render())}
-      {target.render()}
-    </div>
-  );
-  
+  return (game.render());
 }
 
 export default App;

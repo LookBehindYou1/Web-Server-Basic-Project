@@ -2,8 +2,7 @@ import React from 'react';
 
 // First
 class GameObject {
-    constructor(x=0, y=0, dx=0, dy=0, image=null,
-                xSize=0, ySize=0, xBorder=1000, yBorder=1000){
+    constructor(x=null, y=null, dx=0, dy=0, image=null, xSize=5, ySize=5, xBorder=100, yBorder=100){
         this.x = x;
         this.y = y;
         this.dx = dx;
@@ -13,6 +12,9 @@ class GameObject {
         this.ySize = ySize;
         this.xBorder = xBorder;
         this.yBorder = yBorder;
+        if (this.x === null || this.y === null) {
+            this.jumpToRandom();
+        }
     }
 
     // Focuses on randomness of jump.
@@ -24,8 +26,7 @@ class GameObject {
     // For collisions of images.
     hasCollision(other){
         return (
-            ((other.x -  this.xSize <= this.x) && (this.x <= other.x + other.xSize))
-            && ((other.y - this.ySize <= this.y) && (this.y <= other.y + other.ySize))
+            ((other.x -  this.xSize <= this.x) && (this.x <= other.x + other.xSize)) && ((other.y - this.ySize <= this.y) && (this.y <= other.y + other.ySize))
         )
     }
     
@@ -58,10 +59,10 @@ class GameObject {
                 src={this.image}
                 style={{
                     position: 'absolute',
-                    left: this.x,
-                    top: this.y,
-                    width: `${this.xSize}px`,
-                    height: `${this.ySize}px`,
+                    left: `${this.x}%`,
+                    top: `${this.y}%`,
+                    width: `${this.xSize}%`,
+                    height: `${this.ySize}%`,
                 }}
                 {...props}
             />
@@ -92,15 +93,28 @@ class AccelerationObject extends GameObject {
 
 // Third
 class PlatformerObject extends AccelerationObject {
+    constructor(...args) {
+        super(...args);
+        this.accumulatedAreaChange = 0;
+    }
+
+    areaChange() {
+        let tmp = this.accumulatedAreaChange;
+        this.accumulatedAreaChange = 0;
+        return tmp;
+    }
+
     // Checks borders.
     checkBorders(){
         if (this.x < 0) {
             this.dx = 0;
             this.x = 0;
+            this.accumulatedAreaChange = -1;
         }
         if (this.x > this.xBorder - this.xSize) {
             this.dx = 0;
             this.x = this.xBorder - this.xSize;
+            this.accumulatedAreaChange = 1;
         }
         if (this.y < 0) {
             this.dy = 0;
@@ -111,10 +125,12 @@ class PlatformerObject extends AccelerationObject {
             this.y = this.yBorder - this.ySize;
         }    
     }
+    
     // Checks if the object is touching the ground.
     isTouchingGround() {
-        return this.y == this.yBorder - this.ySize;
+        return this.y === this.yBorder - this.ySize;
     }
+
     // Falling.
     jump() {
         if (this.isTouchingGround()) {
